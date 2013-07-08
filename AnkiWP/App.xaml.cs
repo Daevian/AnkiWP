@@ -35,6 +35,11 @@ namespace AnkiWP
             get { return s_viewModel; }
         }
 
+        public static Model.Collection Collection
+        {
+            get { return App.s_collection; }
+        }
+
         /// <summary>
         /// Provides easy access to the root frame of the Phone Application.
         /// </summary>

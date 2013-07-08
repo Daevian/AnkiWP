@@ -28,7 +28,8 @@ namespace AnkiWP.Pages
             if (NavigationContext.QueryString.TryGetValue("deck", out queryStringValue))
             {
                 var deck = App.ViewModel.Decks.FirstOrDefault((item) => (string.Equals(item.Name, queryStringValue)));
-                m_viewModel = new StudyViewModel(deck);
+                m_viewModel = new StudyViewModel();
+                m_viewModel.Deck = deck;
                 this.DataContext = m_viewModel;
 
                 this.ApplicationBar = Resources["FrontCardAppBar"] as Microsoft.Phone.Shell.ApplicationBar;

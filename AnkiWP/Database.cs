@@ -158,6 +158,36 @@ namespace AnkiWP
 
                 collection.Config = await JsonConvert.DeserializeObjectAsync<Model.Config>(col.conf);
             }
+
+            foreach (var card in m_cards)
+            {
+                collection.Cards.Add(new Model.Card
+                    {
+                    });
+            }
+
+            foreach (var note in m_notes)
+            {
+                collection.Notes.Add(new Model.Note
+                {
+                    Id = note.id,
+                    Guid = note.guid,
+                    Mid = note.mid,
+                    Mon = note.mon,
+                    Usn = note.usn,
+                    Tags = note.tags,
+                    Fields = SplitFields(note.flds),
+                    CheckSum = note.csum,
+                    Flags = note.flags,
+                    Data = note.data,
+                });
+            }
+        }
+
+        private List<string> SplitFields(string joinedFields)
+        {
+            var fields = joinedFields.Split('\x1f');
+            return fields.ToList();
         }
 
         public async Task Commit()

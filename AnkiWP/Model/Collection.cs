@@ -12,6 +12,8 @@ namespace AnkiWP.Model
     {
         private ObservableCollection<Model> m_models = new ObservableCollection<Model>();
         private ObservableCollection<Deck> m_decks = new ObservableCollection<Deck>();
+        private ObservableCollection<Note> m_notes = new ObservableCollection<Note>();
+        private ObservableCollection<Card> m_cards = new ObservableCollection<Card>();
         private Dictionary<string, dynamic> m_tags = new Dictionary<string, dynamic>();
         private ObservableCollection<DeckConfig> m_deckConfigs = new ObservableCollection<DeckConfig>();
         private Config m_config = new Config();
@@ -33,6 +35,26 @@ namespace AnkiWP.Model
             {
                 m_decks = value;
                 RaisePropertyChanged(() => this.Decks);
+            }
+        }
+
+        public ObservableCollection<Note> Notes
+        {
+            get { return m_notes; }
+            set
+            {
+                m_notes = value;
+                RaisePropertyChanged(() => this.Notes);
+            }
+        }
+
+        public ObservableCollection<Card> Cards
+        {
+            get { return m_cards; }
+            set
+            {
+                m_cards = value;
+                RaisePropertyChanged(() => this.Cards);
             }
         }
 

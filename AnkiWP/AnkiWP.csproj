@@ -130,6 +130,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Database.cs" />
+    <Compile Include="Model\Card.cs" />
     <Compile Include="Model\CardItem.cs" />
     <Compile Include="Model\Collection.cs" />
     <Compile Include="Model\Config.cs" />
@@ -137,6 +138,7 @@
     <Compile Include="Model\DeckConfig.cs" />
     <Compile Include="Model\DeckItem.cs" />
     <Compile Include="Model\Model.cs" />
+    <Compile Include="Model\Note.cs" />
     <Compile Include="Pages\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>

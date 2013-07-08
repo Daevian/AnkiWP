@@ -19,19 +19,24 @@ namespace AnkiWP.ViewModel
         private Model.Deck m_deck;
         private ShowMode m_currentShowMode = ShowMode.Front;
 
-        public StudyViewModel(Model.Deck deck)
-        {
-            m_deck = deck;
-        }
-
         public event PropertyChangedEventHandler PropertyChanged;
+
+        public Model.Deck Deck
+        {
+            get { return m_deck; }
+            set
+            {
+                m_deck = value;
+                OnDeckChanged(m_deck);
+            }
+        }
 
         public string DeckName
         {
             get { return m_deck.Name; }
         }
 
-        public string CardText
+        public string CardFront
         {
             get
             {
@@ -68,6 +73,16 @@ namespace AnkiWP.ViewModel
             {
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
             }
+        }
+
+        private void OnDeckChanged(Model.Deck deck)
+        {
+            //App.
+        }
+
+        private void CompileCard()
+        {
+
         }
     }
 }
