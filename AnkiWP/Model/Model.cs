@@ -83,23 +83,23 @@ namespace AnkiWP.Model
             [JsonProperty("name")]
             public string Name { get; set; }
 
+            [JsonProperty("afmt")]
+            public string AnswerFormat { get; set; }
+
             [JsonProperty("qfmt")]
-            public string Qfmt { get; set; }
+            public string QuestionFormat { get; set; }
+
+            [JsonProperty("bafmt")]
+            public string BrowserAnswerFormat { get; set; }
+
+            [JsonProperty("bqfmt")]
+            public string BrowserQuestionFormat { get; set; }
 
             [JsonProperty("did")]
             public dynamic Did { get; set; }
 
-            [JsonProperty("bafmt")]
-            public string Bafmt { get; set; }
-
-            [JsonProperty("afmt")]
-            public string Afmt { get; set; }
-
             [JsonProperty("ord")]
             public dynamic Ord { get; set; }
-
-            [JsonProperty("bqfmt")]
-            public string Bqfmt { get; set; }
         }
     }
 }

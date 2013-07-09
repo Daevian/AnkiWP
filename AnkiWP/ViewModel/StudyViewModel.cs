@@ -77,6 +77,10 @@ namespace AnkiWP.ViewModel
 
         private void OnDeckChanged(Model.Deck deck)
         {
+            
+            var note = App.Collection.Notes[0];
+            
+            
             //App.
         }
 

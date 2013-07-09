@@ -130,6 +130,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Database.cs" />
+    <Compile Include="Misc.cs" />
     <Compile Include="Model\Card.cs" />
     <Compile Include="Model\CardItem.cs" />
     <Compile Include="Model\Collection.cs" />
@@ -150,6 +151,7 @@
     <Compile Include="SQLiteAsync.cs" />
     <Compile Include="Syncer.cs" />
     <Compile Include="ViewModel\AnkiViewModel.cs" />
+    <Compile Include="ViewModel\CardViewModel.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Compile Include="ViewModel\StudyViewModel.cs" />
     <Compile Include="ViewModel\ViewModelLocator.cs" />
