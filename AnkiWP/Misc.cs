@@ -9,16 +9,16 @@ namespace AnkiWP
 {
     static class Misc
     {
-        public static void Render(Model.Model.Template template, string context, string encoding)
+        public static void Render(string template, string context, string encoding)
         {
             //template = template or self.template
             //context = context or self.context
             //template = RenderSections(template);
-            var result = RenderTags(template);
+            //var result = RenderTags(template);
             //if encoding is not None:
             if (encoding != string.Empty)
             {
-                result = Encode(result, encoding);
+                //result = Encode(result, encoding);
             }
         }
 

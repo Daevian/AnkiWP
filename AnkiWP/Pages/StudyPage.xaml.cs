@@ -31,6 +31,8 @@ namespace AnkiWP.Pages
                 m_viewModel = new StudyViewModel();
                 m_viewModel.Deck = deck;
                 this.DataContext = m_viewModel;
+                this.WebBrowser.NavigateToString(m_viewModel.CardViewModel.Question);
+                
 
                 this.ApplicationBar = Resources["FrontCardAppBar"] as Microsoft.Phone.Shell.ApplicationBar;
             }
@@ -38,7 +40,8 @@ namespace AnkiWP.Pages
 
         private void ShowAnswerAppBarIconButton_Click(object sender, EventArgs e)
         {
-            m_viewModel.ShowBack();
+            this.WebBrowser.NavigateToString(m_viewModel.CardViewModel.Answer);
+
             //switch (m_viewModel.CurrentCard.CardType)
             //{
             //    case AnkiWP.Model.CardItem.LearningType.New:

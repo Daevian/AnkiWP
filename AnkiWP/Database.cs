@@ -15,7 +15,7 @@ namespace AnkiWP
     public class col
     {
         [PrimaryKey, AutoIncrement]
-        public int id { get; set; }
+        public long id { get; set; }
         public long crt { get; set; }
         public long mod { get; set; }
         public long scm { get; set; }
@@ -33,9 +33,9 @@ namespace AnkiWP
     public class notes
     {
         [PrimaryKey, AutoIncrement]
-        public int id { get; set; }
+        public long id { get; set; }
         public string guid { get; set; }
-        public int mid { get; set; }
+        public long mid { get; set; }
         public int mon { get; set; }
         public int usn { get; set; }
         public string tags { get; set; }
@@ -49,9 +49,9 @@ namespace AnkiWP
     public class cards
     {
         [PrimaryKey, AutoIncrement]
-        public int id { get; set; }
-        public int nid { get; set; }
-        public int did { get; set; }
+        public long id { get; set; }
+        public long nid { get; set; }
+        public long did { get; set; }
         public int ord { get; set; }
         public int mod { get; set; }
         public int usn { get; set; }
@@ -64,7 +64,7 @@ namespace AnkiWP
         public int lapses { get; set; }
         public int left { get; set; }
         public int odue { get; set; }
-        public int odid { get; set; }
+        public long odid { get; set; }
         public int flags { get; set; }
         public string data { get; set; }
     }
@@ -168,33 +168,13 @@ namespace AnkiWP
 
             foreach (var card in m_cards)
             {
-                collection.Cards.Add(new Model.Card
-                    {
-                    });
+                collection.Cards.Add(new Model.Card(card));
             }
 
             foreach (var note in m_notes)
             {
-                collection.Notes.Add(new Model.Note
-                {
-                    Id = note.id,
-                    Guid = note.guid,
-                    Mid = note.mid,
-                    Mon = note.mon,
-                    Usn = note.usn,
-                    Tags = note.tags,
-                    Fields = SplitFields(note.flds),
-                    CheckSum = note.csum,
-                    Flags = note.flags,
-                    Data = note.data,
-                });
+                collection.Notes.Add(new Model.Note(note));
             }
-        }
-
-        private List<string> SplitFields(string joinedFields)
-        {
-            var fields = joinedFields.Split('\x1f');
-            return fields.ToList();
         }
 
         public async Task Commit()

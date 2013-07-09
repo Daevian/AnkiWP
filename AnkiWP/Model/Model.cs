@@ -9,6 +9,12 @@ namespace AnkiWP.Model
 {
     public class Model
     {
+        public enum ModelType
+        {
+            Standard = 0,
+            Cloze = 1
+        };
+
         [JsonProperty("vers")]
         public dynamic Vers { get; set; }
 
@@ -43,10 +49,10 @@ namespace AnkiWP.Model
         public string LatexPost { get; set; }
 
         [JsonProperty("type")]
-        public dynamic Type { get; set; }
+        public ModelType Type { get; set; }
 
         [JsonProperty("id")]
-        public dynamic Id { get; set; }
+        public long Id { get; set; }
 
         [JsonProperty("css")]
         public string Css { get; set; }
@@ -69,7 +75,7 @@ namespace AnkiWP.Model
             public bool Rtl { get; set; }
 
             [JsonProperty("ord")]
-            public dynamic Ord { get; set; }
+            public int Order { get; set; }
 
             [JsonProperty("font")]
             public string Font { get; set; }

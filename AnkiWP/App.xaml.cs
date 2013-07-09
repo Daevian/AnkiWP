@@ -24,6 +24,7 @@ namespace AnkiWP
         private static Model.Collection s_collection;
         private static Database s_database;
         private static AnkiViewModel s_viewModel;
+        private static Scheduler s_scheduler;
 
         public static Database Database
         {
@@ -38,6 +39,11 @@ namespace AnkiWP
         public static Model.Collection Collection
         {
             get { return App.s_collection; }
+        }
+
+        public static Scheduler Scheduler
+        {
+            get { return App.s_scheduler; }
         }
 
         /// <summary>
@@ -82,6 +88,7 @@ namespace AnkiWP
 
             s_collection = new Model.Collection();
             s_viewModel = new AnkiViewModel(s_collection);
+            s_scheduler = new Scheduler();
         }
 
         // Code to execute when the application is launching (eg, from Start)

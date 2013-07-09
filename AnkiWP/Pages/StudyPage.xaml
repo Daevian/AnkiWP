@@ -51,7 +51,8 @@
 
         <!--ContentPanel - place additional content here-->
         <Grid x:Name="ContentPanel" Grid.Row="1" Margin="12,0,12,0">
-            <TextBlock Text="{Binding CardFront}"/>
+            <!--<TextBlock Text="{Binding CardFront}" TextWrapping="Wrap"/>-->
+            <phone:WebBrowser x:Name="WebBrowser" Background="Black"/>
         </Grid>
     </Grid>
 

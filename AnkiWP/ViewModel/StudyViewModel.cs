@@ -5,10 +5,11 @@ using System.Linq;
 using System.Text;
 using System.ComponentModel;
 using System.Collections.ObjectModel;
+using GalaSoft.MvvmLight;
 
 namespace AnkiWP.ViewModel
 {
-    public class StudyViewModel : INotifyPropertyChanged
+    public class StudyViewModel : ViewModelBase
     {
         public enum ShowMode
         {
@@ -16,6 +17,7 @@ namespace AnkiWP.ViewModel
             Back,
         };
 
+        private CardViewModel m_cardVM;
         private Model.Deck m_deck;
         private ShowMode m_currentShowMode = ShowMode.Front;
 
@@ -36,35 +38,15 @@ namespace AnkiWP.ViewModel
             get { return m_deck.Name; }
         }
 
-        public string CardFront
+        public CardViewModel CardViewModel
         {
-            get
-            {
-                return "test text";
-            }
-        }
-
-        //public CardItem CurrentCard
-        //{
-        //    get { return m_deck.CurrentCard; }
-        //}
-
-        public void ShowBack()
-        {
-            m_currentShowMode = ShowMode.Back;
-            NotifyPropertyChanged("CardText");
+            get { return m_cardVM; }
         }
 
         public void ShowNextCard()
         {
-            m_currentShowMode = ShowMode.Front;
-
-            //m_deckItem.CurrentCard.NextReview = DateTime.Now.TimeOfDay + TimeSpan.FromMinutes(10.0);
-
-            //m_deckItem.Cards = new ObservableCollection<CardItem>(m_deckItem.Cards.OrderBy(item => item.NextReview));
-            
-
-            NotifyPropertyChanged("CardText");
+            var card = App.Scheduler.GetCard();
+            m_cardVM = new CardViewModel(card);
         }
 
         private void NotifyPropertyChanged(string propertyName)
@@ -77,16 +59,7 @@ namespace AnkiWP.ViewModel
 
         private void OnDeckChanged(Model.Deck deck)
         {
-            
-            var note = App.Collection.Notes[0];
-            
-            
-            //App.
-        }
-
-        private void CompileCard()
-        {
-
+            ShowNextCard();
         }
     }
 }

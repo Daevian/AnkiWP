@@ -46,7 +46,7 @@ namespace AnkiWP.Model
         public dynamic LearnToday { get; set; }
 
         [JsonProperty("id")]
-        public dynamic Id { get; set; }
+        public long Id { get; set; }
 
         [JsonProperty("mod")]
         public dynamic Mod { get; set; }
