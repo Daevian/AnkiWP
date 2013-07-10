@@ -147,13 +147,6 @@ namespace AnkiWP
 
                 var models = await JsonConvert.DeserializeObjectAsync<Dictionary<string, Model.Model>>(col.models);
                 collection.Models = new ObservableCollection<Model.Model>(models.Values);
-                foreach (var model in collection.Models)
-                {
-                    foreach (var template in model.Templates)
-                    {
-                        var temp = new Template(template);
-                    }
-                }
 
                 var decks = await JsonConvert.DeserializeObjectAsync<Dictionary<string, Model.Deck>>(col.decks);
                 collection.Decks = new ObservableCollection<Model.Deck>(decks.Values);

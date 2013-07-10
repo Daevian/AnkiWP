@@ -166,7 +166,14 @@ namespace AnkiWP.ViewModel
                         break;
                 }
 
-                var html = format;
+                string html = format;
+                foreach (var field in fields)
+                {
+                    html = html.Replace("{{" + field.Key + "}}", field.Value);
+                }
+
+                var htmlTest = Template.Render(format, fields);
+
                 generatedSides[side.Key] = html;
 
                 //fields = runFilter("mungeFields", fields, model, data, self)

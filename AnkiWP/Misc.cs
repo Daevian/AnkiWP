@@ -7,63 +7,69 @@ using System.Threading.Tasks;
 
 namespace AnkiWP
 {
-    static class Misc
+    public static class Template
     {
-        public static void Render(string template, string context, string encoding)
+        private static Model.Model.Template m_template;
+        private static string otag = "{{";
+        private static string ctag = "}}";
+        private static Regex m_sectionRe;
+        private static Regex m_tagRe;
+
+        static Template()
         {
-            //template = template or self.template
-            //context = context or self.context
-            //template = RenderSections(template);
-            //var result = RenderTags(template);
-            //if encoding is not None:
-            if (encoding != string.Empty)
-            {
-                //result = Encode(result, encoding);
-            }
+            CompileRegExps();
         }
 
-        public static string RenderTags(Model.Model.Template template)
-        {
-            return string.Empty;
-        }
-
-        public static string Encode(string text, string encoding)
-        {
-            return text;
-        }
-    }
-
-    public class Template
-    {
-        private Model.Model.Template m_template;
-        private string otag = "{{";
-        private string ctag = "}}";
-        private Regex m_sectionRe;
-        private Regex m_tagRe;
-
-        public Template(Model.Model.Template template)
-        {
-            m_template = template;
-
-            //CompileRegExps();
-        }
-
-        public void CompileRegExps()
+        public static void CompileRegExps()
         {
             var tags = new Dictionary<string, string>();
             tags["otag"] = Regex.Escape(otag);
             tags["ctag"] = Regex.Escape(ctag);
 
-            var section = string.Format(@"%{0}s[\#|^]([^\}}]*)%{1}s(.+?)%{0}s/\1%{1}s", tags["otag"], tags["ctag"]);
-            m_sectionRe = new Regex(section, RegexOptions.Multiline | RegexOptions.Compiled);
+            var section = string.Format(@"{0}[\#|^]([^\}}]*){1}(.+?){0}/\1{1}", tags["otag"], tags["ctag"]);
+            m_sectionRe = new Regex(section, RegexOptions.Multiline | RegexOptions.Singleline);
 
-            var tag = string.Format(@"%{0}s(#|=|&|!|>|\{{)?(.+?)\1?%{1}s+", tags["otag"], tags["ctag"]);
-            m_tagRe = new Regex(tag, RegexOptions.Multiline | RegexOptions.Compiled);
+            var tag = string.Format(@"{0}(#|=|&|!|>|\{{)?(.+?)\1?{1}+", tags["otag"], tags["ctag"]);
+            m_tagRe = new Regex(tag, RegexOptions.Multiline | RegexOptions.Singleline);
         }
 
-        public Model.Model.Template RenderSections(Model.Model.Template template)
+        public static string Render(string template, Dictionary<string, string> context)
         {
+            var result = RenderSections(template, context);
+            result = RenderTags(result, context);
 
+            //if encoding is not None:
+            //    result = result.encode(encoding)
+            
+            return result;
+        }
+
+        private static string RenderSections(string template, Dictionary<string, string> context)
+        {
+            var matches = m_sectionRe.Matches(template);
+
+            return template;
+        }
+
+        private static string RenderTags(string template, Dictionary<string, string> context)
+        {
+            var matches = m_tagRe.Matches(template);
+
+            foreach (Match match in matches)
+            {
+                var tag = match.Groups[0].ToString();
+                var tagType = match.Groups[1].ToString();
+                var tagName = match.Groups[2].ToString();
+                tagName = tagName.Trim();
+                
+
+                //try:
+                //    func = modifiers[tag_type]
+                //    replacement = func(self, tag_name, context)
+                //    template = template.replace(tag, replacement)
+                //except (SyntaxError, KeyError):
+                //    return u"{{invalid template}}"
+            }
 
             return template;
         }
