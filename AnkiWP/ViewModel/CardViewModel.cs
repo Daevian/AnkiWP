@@ -166,13 +166,13 @@ namespace AnkiWP.ViewModel
                         break;
                 }
 
-                string html = format;
-                foreach (var field in fields)
-                {
-                    html = html.Replace("{{" + field.Key + "}}", field.Value);
-                }
+                //string html = format;
+                //foreach (var field in fields)
+                //{
+                //    html = html.Replace("{{" + field.Key + "}}", field.Value);
+                //}
 
-                var htmlTest = Template.Render(format, fields);
+                string html = Template.Render(format, fields);
 
                 generatedSides[side.Key] = html;
 

@@ -89,6 +89,8 @@ namespace AnkiWP
             s_collection = new Model.Collection();
             s_viewModel = new AnkiViewModel(s_collection);
             s_scheduler = new Scheduler();
+
+            Furigana.Install();
         }
 
         // Code to execute when the application is launching (eg, from Start)

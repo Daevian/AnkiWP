@@ -62,8 +62,7 @@ namespace AnkiWP.Model
 
         public static List<string> SplitTags(string joinedTags)
         {
-            var tags = joinedTags.Split(' ');
-            return tags.ToList().FindAll(tag => !string.IsNullOrWhiteSpace(tag));
+            return joinedTags.Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries).ToList();
         }
     }
 }

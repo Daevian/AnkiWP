@@ -130,6 +130,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Database.cs" />
+    <Compile Include="Furigana.cs" />
     <Compile Include="Misc.cs" />
     <Compile Include="Model\Card.cs" />
     <Compile Include="Model\CardItem.cs" />
