@@ -145,7 +145,7 @@ namespace AnkiWP
             {
                 var col = m_col[0];
 
-                var models = await JsonConvert.DeserializeObjectAsync<Dictionary<string, Model.Model>>(col.models);
+               /* var models = await JsonConvert.DeserializeObjectAsync<Dictionary<string, Model.Model>>(col.models);
                 collection.Models = new ObservableCollection<Model.Model>(models.Values);
 
                 var decks = await JsonConvert.DeserializeObjectAsync<Dictionary<string, Model.Deck>>(col.decks);
@@ -156,7 +156,7 @@ namespace AnkiWP
                 var deckConfigs = await JsonConvert.DeserializeObjectAsync<Dictionary<string, Model.DeckConfig>>(col.dconf);
                 collection.DeckConfigs = new ObservableCollection<Model.DeckConfig>(deckConfigs.Values);
 
-                collection.Config = await JsonConvert.DeserializeObjectAsync<Model.Config>(col.conf);
+                collection.Config = await JsonConvert.DeserializeObjectAsync<Model.Config>(col.conf);*/
             }
 
             foreach (var card in m_cards)

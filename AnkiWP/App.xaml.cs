@@ -61,7 +61,7 @@ namespace AnkiWP
             UnhandledException += Application_UnhandledException;
 
             // Standard Silverlight initialization
-            InitializeComponent();
+            //InitializeComponent();
 
             // Phone-specific initialization
             InitializePhoneApplication();

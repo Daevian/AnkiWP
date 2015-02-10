@@ -1119,7 +1119,7 @@ namespace AnkiWP
             Dictionary<string, string> userPass = new Dictionary<string, string>();
             userPass[user] = password;
 
-            string creds = await Newtonsoft.Json.JsonConvert.SerializeObjectAsync(userPass, Formatting.None);
+            string creds = "";//await Newtonsoft.Json.JsonConvert.SerializeObjectAsync(userPass, Formatting.None);
             
             Debug.WriteLine(creds);
 
