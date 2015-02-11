@@ -152,7 +152,7 @@ namespace AnkiWP8_1
         private void AppBarButton_Click(object sender, RoutedEventArgs e)
         {
             //SyncThread syncJob = new SyncThread(string.Empty, string.Empty, string.Empty, string.Empty);
-            
+            SyncTest.ConnectionTest();
         }
     }
 }

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Security.Cryptography;
 using Windows.Security.Cryptography.Certificates;
+using Windows.Security.Cryptography.Core;
 using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.Web.Http;
@@ -20,6 +21,9 @@ namespace AnkiWP8_1
 {
     public class SyncTest
     {
+        public static string m_hKey = string.Empty;
+        public static string m_sKey = string.Empty;
+
         public static async void ApplicationResuming()
         {
              //var tempDatabaseFile = await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Data/collection.anki2"));
@@ -52,178 +56,191 @@ namespace AnkiWP8_1
             await test.Request("download", null, 0);
         }
 
+        public static string Checksum(IBuffer data)
+        {
+            HashAlgorithmProvider hashAlgorithm = HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Sha1);
+            var hash = hashAlgorithm.CreateHash();
+            hash.Append(data);
+
+            IBuffer hashBuffer = hash.GetValueAndReset();
+            string hashString = CryptographicBuffer.EncodeToHexString(hashBuffer);
+
+            return hashString;
+        }
+
         public static async void ConnectionTest()
         {
-            try
+            // skey
             {
-                Uri dataUri = new Uri("ms-appx:///Assets/ankiweb.cer");
-                StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(dataUri);
-                Certificate cert = new Certificate(await FileIO.ReadBufferAsync(file));
-                CertificateStore trustedStore = CertificateStores.TrustedRootCertificationAuthorities;
-                trustedStore.Add(cert);
-
-
-                //HttpBaseProtocolFilter filter = new HttpBaseProtocolFilter();
-                //filter.ClientCertificate = cert;
-                //
-                //var buffer = await FileIO.ReadBufferAsync(file);
-                //string certData = CryptographicBuffer.EncodeToBase64String(buffer);
-
-                
-
-                //CertificateRequestProperties test = new CertificateRequestProperties();
-                //test.AttestationCredentialCertificate = cert;
-                //await CertificateEnrollmentManager.UserCertificateEnrollmentManager.CreateRequestAsync(test);
-
-                //await CertificateEnrollmentManager.UserCertificateEnrollmentManager.InstallCertificateAsync(certData, InstallOptions.None);
-
-
-                //IReadOnlyList<Certificate> certs = await CertificateStores.FindAllAsync(new CertificateQuery() { Subje = "Assets/ankiweb.cer" });
-
-                //await CertificateEnrollmentManager.UserCertificateEnrollmentManager.ImportPfxDataAsync(
-                //    certData,
-                //    "",
-                //    ExportOption.NotExportable,
-                //    KeyProtectionLevel.NoConsent,
-                //    InstallOptions.None,
-                //    "MyFriendlyName"); 
-
-                
-                
-                
-
-                //await CertificateEnrollmentManager.ImportPfxDataAsync(CryptographicBuffer.EncodeToBase64String(await FileIO.ReadBufferAsync(file)), "", ExportOption.NotExportable, KeyProtectionLevel.NoConsent, InstallOptions.None, "name");
-                
-                //filter.ClientCertificate = certs.FirstOrDefault();
-
-                //var certificate = CryptographicBuffer.EncodeToBase64String(await FileIO.ReadBufferAsync(file));
-                //await CertificateEnrollmentManager.InstallCertificateAsync(certificate, InstallOptions.None);
-
-                //HttpClient httpClient = new HttpClient();
+                var random = new Random();
+                var val = random.Next();
+                DataWriter writer = new DataWriter();
+                writer.WriteString(string.Format("{0}", val));
+                m_sKey = Checksum(writer.DetachBuffer()).Substring(0, 8);
             }
-            catch (Exception ex)
+
+            // hkey
             {
+                try
+                {
+                    Uri dataUri = new Uri("ms-appx:///Assets/ankiweb.cer");
+                    StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(dataUri);
+                    Certificate cert = new Certificate(await FileIO.ReadBufferAsync(file));
+                    CertificateStore trustedStore = CertificateStores.TrustedRootCertificationAuthorities;
+                    trustedStore.Add(cert);
+                }
+                catch (Exception ex)
+                {
+                    throw;
+                }
 
-                throw;
+                string user = "daeviann@live.com";
+                string pass = "TestingTesting";
+
+                Windows.Data.Json.JsonObject jCreds = new Windows.Data.Json.JsonObject
+                    {
+                        {"p", Windows.Data.Json.JsonValue.CreateStringValue(pass)},
+                        {"u", Windows.Data.Json.JsonValue.CreateStringValue(user)},
+                    };
+
+                string creds = jCreds.Stringify();
+
+                DataWriter writer = new DataWriter();
+                writer.WriteString(creds);
+
+                try
+                {
+                    Dictionary<string, object> postVars = new Dictionary<string, object>();
+                    string content = await Request("hostKey", writer.DetachBuffer(), postVars);
+                    Windows.Data.Json.JsonObject a;
+                    bool result = Windows.Data.Json.JsonObject.TryParse(content, out a);
+                    Windows.Data.Json.IJsonValue jValue;
+                    result = a.TryGetValue("key", out jValue);
+                    m_hKey = jValue.GetString();
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e.Message);
+                    throw;
+                }
             }
-            
 
+            TestSync();
+        }
 
+        public static async void TestSync()
+        {
+            Dictionary<string, object> postVars = new Dictionary<string, object>();
+            postVars.Add("k", m_hKey);
+            postVars.Add("s", m_sKey);
 
-            string user = "daeviann@live.com";
-            string pass = "TestingTesting";
+            string SYNC_VER = "8";
+            string version = "2.0.31";
+            string cv = string.Format("ankidesktop,{0},{1}", version, "win:8");
 
             Windows.Data.Json.JsonObject jtest = new Windows.Data.Json.JsonObject
                 {
-                    {user, Windows.Data.Json.JsonValue.CreateStringValue(pass)}
+                    {"v", Windows.Data.Json.JsonValue.CreateStringValue(SYNC_VER)},
+                    {"cv", Windows.Data.Json.JsonValue.CreateStringValue(cv)},
                 };
 
-            string reqMethod = "hostKey";
-            //string creds = jtest.Stringify();
-            string creds = "{\"p\": \"TestingTesting\", \"u\": \"daeviann@live.com\"}";
+            DataWriter writer = new DataWriter();
+            string json = jtest.Stringify();
+            writer.WriteString(json);
 
-            using (var stream = new MemoryStream())
-            {
-                using (var streamWriter = new StreamWriter(stream))
-                {
-                    await streamWriter.WriteAsync(creds);
-                    await streamWriter.FlushAsync();
+            IBuffer buffer = writer.DetachBuffer();
 
-                    try
-                    {
-                        Request(reqMethod, stream);
-                        //return await Request("hostKey", stream, 6, false, false);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine(e.Message);
-                        throw;
-                    }
-                }
-            }
+            string content = await Request("meta", buffer, postVars);
+            Windows.Data.Json.JsonObject a;
+            bool result = Windows.Data.Json.JsonObject.TryParse(content, out a);
+            Windows.Data.Json.IJsonValue jValue;
+            result = a.TryGetValue("key", out jValue);
+            m_hKey = jValue.GetString();
         }
 
-        public static async void Request(string method, MemoryStream fobj, int comp = 6, bool badAuthRaises = false)
+        public static async Task<string> Request(string method, IBuffer fobj, Dictionary<string, object> postVars, int comp = 6, bool badAuthRaises = false)
         {
+            Debug.Assert(postVars != null);
+
             string BOUNDARY = "Anki-sync-boundary";
             string boundary = "--" + BOUNDARY;
             DataWriter writer = new DataWriter();
-            //using (var buffer = new MemoryStream())
+            
+            // compression flag and session key as post vars
+            postVars["c"] = comp > 0 ? 1 : 0;
+
+            foreach (var item in postVars)
             {
-                //using (var buf = new StreamWriter(buffer))
+                writer.WriteString(boundary + "\r\n");
+                writer.WriteString(string.Format("Content-Disposition: form-data; name=\"{0}\"\r\n\r\n{1}\r\n", item.Key, item.Value));
+            }
+
+            // payload as raw data or json
+            if (fobj != null)
+            {
+                // header
+                writer.WriteString(boundary + "\r\n");
+                writer.WriteString("Content-Disposition: form-data; name=\"data\"; filename=\"data\"\r\nContent-Type: application/octet-stream\r\n\r\n");
+
+                //fobj.Seek(0, SeekOrigin.Begin);
+
+                var fobjAsArray = fobj.ToArray();
+
+                if (comp > 0)
                 {
-                    // compression flag and session key as post vars
-                    Dictionary<string, object> vars = new Dictionary<string, object>();
-                    vars["c"] = comp > 0 ? 1 : 0;
-                    //if (hostKey)
-                    //{
-                    //    vars["k"] = m_hostKey;
-                    //}
-
-                    foreach (var item in vars)
+                    using (var zippedStream = new MemoryStream())
                     {
-                        writer.WriteString(boundary + "\r\n");
-                        writer.WriteString(string.Format("Content-Disposition: form-data; name=\"{0}\"\r\n\r\n{1}\r\n", item.Key, item.Value));
-                    }
-
-                    // payload as raw data or json
-                    if (fobj != null)
-                    {
-                        // header
-                        writer.WriteString(boundary + "\r\n");
-                        writer.WriteString("Content-Disposition: form-data; name=\"data\"; filename=\"data\"\r\nContent-Type: application/octet-stream\r\n\r\n");
-
-                        fobj.Seek(0, SeekOrigin.Begin);
-
-                        var fobjAsArray = fobj.ToArray();
-
-                        if (comp > 0)
+                        using (GZipStream gzipStream = new GZipStream(zippedStream, CompressionMode.Compress, true))
                         {
-                            using (var zippedStream = new MemoryStream())
-                            {
-                                using (GZipStream gzipStream = new GZipStream(zippedStream, CompressionMode.Compress, true))
-                                {
-                                    await gzipStream.WriteAsync(fobjAsArray, 0, fobjAsArray.Length);
-                                    await gzipStream.FlushAsync();
-                                }
-
-                                var temp = zippedStream.ToArray();
-                                writer.WriteBytes(temp);
-                            }
-                        }
-                        else
-                        {
-                            writer.WriteBytes(fobjAsArray);
+                            await gzipStream.WriteAsync(fobjAsArray, 0, fobjAsArray.Length);
+                            await gzipStream.FlushAsync();
                         }
 
-                        writer.WriteString("\r\n" + boundary + "--\r\n");
-                    }
-
-                    //var size = buffer.Length;
-
-                    IBuffer contentBuffer = writer.DetachBuffer();
-                    //string contentString = CryptographicBuffer.ConvertBinaryToString(BinaryStringEncoding.Utf8, contentBuffer);
-                    
-
-                    var uri = new Uri("https://ankiweb.net/sync/" + method);
-
-                    HttpClient httpClient = new HttpClient();
-                    IHttpContent content = new HttpAnkiContent(contentBuffer, BOUNDARY);
-                    HttpResponseMessage response = await httpClient.PostAsync(uri, content);//.AsTask(cts.Token);
-
-                    if (response.IsSuccessStatusCode)
-                    {
-
-                    }
-                    else
-                    {
-                        if (response.StatusCode == HttpStatusCode.Forbidden)
-                        {
-                            Debug.WriteLine(response.ReasonPhrase);
-                        }
+                        var temp = zippedStream.ToArray();
+                        writer.WriteBytes(temp);
                     }
                 }
+                else
+                {
+                    writer.WriteBytes(fobjAsArray);
+                }
+
+                writer.WriteString("\r\n" + boundary + "--\r\n");
             }
+
+            //var size = buffer.Length;
+
+            IBuffer contentBuffer = writer.DetachBuffer();
+            //string contentString = CryptographicBuffer.ConvertBinaryToString(BinaryStringEncoding.Utf8, contentBuffer);
+                    
+
+            var uri = new Uri("https://ankiweb.net/sync/" + method);
+
+            HttpClient httpClient = new HttpClient();
+            IHttpContent content = new HttpAnkiContent(contentBuffer, BOUNDARY);
+            HttpResponseMessage response = await httpClient.PostAsync(uri, content);//.AsTask(cts.Token);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string resContent = await response.Content.ReadAsStringAsync();
+                return resContent;
+            }
+            else
+            {
+                if (response.StatusCode == HttpStatusCode.Forbidden)
+                {
+                    Debug.WriteLine(response.ReasonPhrase);
+                }
+
+                Debug.Assert(response.IsSuccessStatusCode);
+
+                // - 200: wrong user/pass
+                // - 501: client needs upgrade
+                // - 502: ankiweb down
+                // - 503/504: server too busy
+            }
+
+            return string.Empty;
         }
     }
 
