@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using AnkiWP.Model;
+using Newtonsoft.Json;
 using SQLite;
 using System;
 using System.Collections.Generic;
@@ -6,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage;
@@ -93,6 +95,8 @@ namespace AnkiWP
     
     public class Database
     {
+        public static int SCHEMA_VERSION = 11;
+
         public static string DB_PATH = Path.Combine(Path.Combine(ApplicationData.Current.LocalFolder.Path, "collection.anki2"));
         
         private SQLiteAsyncConnection m_database;
@@ -111,7 +115,7 @@ namespace AnkiWP
             m_path = path;
             m_modified = false;
 
-            m_database = new SQLiteAsyncConnection(m_path, SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create, true);            
+            m_database = new SQLiteAsyncConnection(m_path, SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create, true);      
         }
 
         public void Close()
@@ -155,18 +159,18 @@ namespace AnkiWP
             {
                 var col = m_col[0];
 
-               /* var models = await JsonConvert.DeserializeObjectAsync<Dictionary<string, Model.Model>>(col.models);
+                var models = JsonConvert.DeserializeObject<Dictionary<ulong, Model.Model>>(col.models);
                 collection.Models = new ObservableCollection<Model.Model>(models.Values);
 
-                var decks = await JsonConvert.DeserializeObjectAsync<Dictionary<string, Model.Deck>>(col.decks);
+                var decks = JsonConvert.DeserializeObject<Dictionary<string, Model.Deck>>(col.decks);
                 collection.Decks = new ObservableCollection<Model.Deck>(decks.Values);
 
-                collection.Tags = await JsonConvert.DeserializeObjectAsync<Dictionary<string, dynamic>>(col.tags);
+                collection.Tags = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(col.tags);
 
-                var deckConfigs = await JsonConvert.DeserializeObjectAsync<Dictionary<string, Model.DeckConfig>>(col.dconf);
+                var deckConfigs = JsonConvert.DeserializeObject<Dictionary<string, Model.DeckConfig>>(col.dconf);
                 collection.DeckConfigs = new ObservableCollection<Model.DeckConfig>(deckConfigs.Values);
 
-                collection.Config = await JsonConvert.DeserializeObjectAsync<Model.Config>(col.conf);*/
+                collection.Config = JsonConvert.DeserializeObject<Model.Config>(col.conf);
             }
 
             foreach (var card in m_cards)
@@ -216,10 +220,9 @@ namespace AnkiWP
             return await m_database.ExecuteScalarAsync<string>(sql, args);
         }
 
-        /*
-        public int Execute(string sqlText, params object[] args)
+        public async Task<int> Execute(string query, params object[] args)
         {
-            string sql = sqlText.Trim().ToLower();
+            string sql = query.Trim().ToLower();
 
             // mark modified?
             string[] temp = { "insert", "update", "delete" };
@@ -231,18 +234,15 @@ namespace AnkiWP
                 }
             }
 
-            return m_db.Execute(sql, args);
+            return await m_database.ExecuteAsync(query, args);
         }
 
-        public void ExecuteMany(string sqlText)
-        {
-            throw new NotImplementedException();
-        }
+        /*
+        
 
-        public void ExecuteScript()
-        {
-            throw new NotImplementedException();
-        }
+        
+
+        
 
         public void Commit()
         {
@@ -318,6 +318,160 @@ namespace AnkiWP
         //    /// Insert the new task in the Task table.
         //    m_db.Insert(task);
         //}
+
+        public static async Task<int> CreateDB(Database database)
+        {
+            Debug.Assert(database != null);
+
+            await database.Execute("pragma page_size = 4096");
+            await database.Execute("pragma legacy_file_format = 0");
+            await database.Execute("vacuum");
+            await Database.AddSchema(database);
+            await Database.UpdateIndices(database);
+            await database.Execute("analyze");
+            return SCHEMA_VERSION;
+        }
+
+        private static async Task AddSchema(Database database, bool setColConf = true)
+        {
+            Debug.Assert(database != null);
+
+            await database.Execute(
+@"create table if not exists col (
+    id              integer primary key,
+    crt             integer not null,
+    mod             integer not null,
+    scm             integer not null,
+    ver             integer not null,
+    dty             integer not null,
+    usn             integer not null,
+    ls              integer not null,
+    conf            text not null,
+    models          text not null,
+    decks           text not null,
+    dconf           text not null,
+    tags            text not null
+);");
+
+            await database.Execute(
+@"create table if not exists notes (
+    id              integer primary key,   /* 0 */
+    guid            text not null,         /* 1 */
+    mid             integer not null,      /* 2 */
+    mod             integer not null,      /* 3 */
+    usn             integer not null,      /* 4 */
+    tags            text not null,         /* 5 */
+    flds            text not null,         /* 6 */
+    sfld            integer not null,      /* 7 */
+    csum            integer not null,      /* 8 */
+    flags           integer not null,      /* 9 */
+    data            text not null          /* 10 */
+);");
+
+            await database.Execute(
+@"create table if not exists cards (
+    id              integer primary key,   /* 0 */
+    nid             integer not null,      /* 1 */
+    did             integer not null,      /* 2 */
+    ord             integer not null,      /* 3 */
+    mod             integer not null,      /* 4 */
+    usn             integer not null,      /* 5 */
+    type            integer not null,      /* 6 */
+    queue           integer not null,      /* 7 */
+    due             integer not null,      /* 8 */
+    ivl             integer not null,      /* 9 */
+    factor          integer not null,      /* 10 */
+    reps            integer not null,      /* 11 */
+    lapses          integer not null,      /* 12 */
+    left            integer not null,      /* 13 */
+    odue            integer not null,      /* 14 */
+    odid            integer not null,      /* 15 */
+    flags           integer not null,      /* 16 */
+    data            text not null          /* 17 */
+);");
+
+            await database.Execute(
+@"create table if not exists revlog (
+    id              integer primary key,
+    cid             integer not null,
+    usn             integer not null,
+    ease            integer not null,
+    ivl             integer not null,
+    lastIvl         integer not null,
+    factor          integer not null,
+    time            integer not null,
+    type            integer not null
+);");
+
+            await database.Execute(
+@"create table if not exists graves (
+    usn             integer not null,
+    oid             integer not null,
+    type            integer not null
+);");
+
+            await database.Execute(string.Format(
+@"insert or ignore into col
+values(1,0,0,{0},{1},0,0,0,'','{{}}','','','{{}}');", SCHEMA_VERSION, Time.IntTime(1000)));
+
+            if (setColConf)
+            {
+                Deck g;
+                DeckConfig gc;
+                DeckConfig c;
+                GetColVars(out g, out gc, out c);
+                await AddColVars(database, g, gc, c);
+            }
+        }
+
+        private static async Task AddColVars(Database database, Deck g, DeckConfig gc, DeckConfig c)
+        {
+            Debug.Assert(database != null);
+            Debug.Assert(g != null);
+            Debug.Assert(gc != null);
+            Debug.Assert(c != null);
+            
+
+            await database.Execute(
+                "update col set conf = ?, decks = ?, dconf = ?",
+                JsonConvert.SerializeObject(c),
+                JsonConvert.SerializeObject(new Dictionary<ulong, Deck> { { 1, g } }),
+                JsonConvert.SerializeObject(new Dictionary<ulong, DeckConfig> { { 1, gc } }));
+        }
+
+        private static void GetColVars(out Deck g, out DeckConfig gc, out DeckConfig c)
+        {
+            g = DefaultDeck.Generate();
+            g.Id = 1;
+            g.Name = "Default";
+            g.Conf = 1;
+            g.Mod = Time.IntTime();
+
+            gc = DefaultDeckConfig.Generate();
+            gc.Id = 1;
+
+            c = DefaultDeckConfig.Generate();
+        }
+
+        private static async Task UpdateIndices(Database database)
+        {
+            Debug.Assert(database != null);
+
+            await database.Execute(@"
+-- syncing
+create index if not exists ix_notes_usn on notes (usn);
+create index if not exists ix_cards_usn on cards (usn);
+create index if not exists ix_revlog_usn on revlog (usn);
+-- card spacing, etc
+create index if not exists ix_cards_nid on cards (nid);
+-- scheduling and deck limiting
+create index if not exists ix_cards_sched on cards (did, queue, due);
+-- revlog by card
+create index if not exists ix_revlog_cid on revlog (cid);
+-- field uniqueness
+create index if not exists ix_notes_csum on notes (csum);
+");
+        }
     }
 
     //public class Task
@@ -346,6 +500,14 @@ namespace AnkiWP
         {
             TimeSpan time = (DateTime.UtcNow - new DateTime(1970, 1, 1));
             return time.TotalSeconds;
+        }
+
+        public static ulong IntTime(ulong scale = 1)
+        {
+            TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);
+            ulong secondsSinceEpoch = (ulong)t.TotalSeconds;
+
+            return secondsSinceEpoch * scale;
         }
     }
 }

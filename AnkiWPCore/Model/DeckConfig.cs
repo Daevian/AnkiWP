@@ -37,7 +37,7 @@ namespace AnkiWP.Model
         public NewConfig New { get; set; }
 
         [JsonProperty("autoplay")]
-        public bool Autoplay { get; set; }
+        public bool AutoPlay { get; set; }
 
         [JsonProperty("id")]
         public dynamic Id { get; set; }
@@ -47,41 +47,50 @@ namespace AnkiWP.Model
 
         public class LapseConfig
         {
+            public enum LeechActionType
+            {
+                Suspend = 0,
+                Tagonly = 1,
+            }
+
             [JsonProperty("leechFails")]
-            public dynamic leechFails { get; set; }
+            public dynamic LeechFails { get; set; }
 
             [JsonProperty("minInt")]
-            public dynamic minInt { get; set; }
+            public dynamic MinInt { get; set; }
 
             [JsonProperty("delays")]
-            public dynamic delays { get; set; }
+            public dynamic Delays { get; set; }
 
             [JsonProperty("leechAction")]
-            public dynamic leechAction { get; set; }
+            public LeechActionType LeechAction { get; set; }
 
             [JsonProperty("mult")]
-            public dynamic mult { get; set; }
+            public ulong Mult { get; set; }
         }
 
         public class RevConfig
         {
             [JsonProperty("perDay")]
-            public dynamic PerDay { get; set; }
+            public ulong PerDay { get; set; }
 
             [JsonProperty("ivlFct")]
-            public dynamic IvlFct { get; set; }
+            public ulong IvlFct { get; set; }
 
             [JsonProperty("maxIvl")]
-            public dynamic MaxIvl { get; set; }
+            public ulong MaxIvl { get; set; }
 
             [JsonProperty("minSpace")]
-            public dynamic MinSpace { get; set; }
+            public ulong MinSpace { get; set; }
 
             [JsonProperty("ease4")]
-            public dynamic Ease4 { get; set; }
+            public double Ease4 { get; set; }
 
             [JsonProperty("fuzz")]
-            public dynamic Fuzz { get; set; }
+            public double Fuzz { get; set; }
+
+            [JsonProperty("bury")]
+            public bool Bury { get; set; }
         }
 
         public class NewConfig
@@ -93,16 +102,68 @@ namespace AnkiWP.Model
             public dynamic Delays { get; set; }
 
             [JsonProperty("perDay")]
-            public dynamic PerDay { get; set; }
+            public ulong PerDay { get; set; }
 
             [JsonProperty("ints")]
             public dynamic Ints { get; set; }
 
             [JsonProperty("initialFactor")]
-            public dynamic InitialFactor { get; set; }
+            public ulong InitialFactor { get; set; }
 
             [JsonProperty("order")]
-            public dynamic Order { get; set; }
+            public ulong Order { get; set; }
+
+            [JsonProperty("bury")]
+            public bool Bury { get; set; }
+        }
+    }
+
+    public static class DefaultDeckConfig
+    {
+        private static ulong NEW_CARDS_DUE = 1;
+
+        public static DeckConfig Generate()
+        {
+            DeckConfig config = new DeckConfig
+            {
+                Name = "Default",
+                New = new DeckConfig.NewConfig
+                {
+                    Delays = new List<int> { 1, 10 },
+                    Ints = new List<int> { 1, 4, 7 },
+                    InitialFactor = 2500,
+                    Separate = true,
+                    Order = NEW_CARDS_DUE,
+                    PerDay = 20,
+                    Bury = true, // may not be set on old decks
+                },
+                Lapse = new DeckConfig.LapseConfig
+                {
+                    Delays = new List<int> { 10 },
+                    Mult = 0,
+                    MinInt = 1,
+                    LeechFails = 8,
+                    LeechAction = DeckConfig.LapseConfig.LeechActionType.Suspend,
+                },
+                Rev = new DeckConfig.RevConfig
+                {
+                    PerDay = 100,
+                    Ease4 = 1.3,
+                    Fuzz = 0.05,
+                    MinSpace = 1, // not currently used
+                    IvlFct = 1,
+                    MaxIvl = 36500,
+                    Bury = true, // may not be set on old decks
+                },
+                MaxTaken = 60,
+                Timer = 0,
+                AutoPlay = true,
+                Replayq = true,
+                Mod = 0,
+                Usn = 0,
+            };
+
+            return config;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using AnkiWP;
+using AnkiWP.Model;
 using AnkiWP8_1.Common;
 using SharpCompress.Compressor.BZip2;
 using System;
@@ -39,6 +40,9 @@ namespace AnkiWP8_1
     public sealed partial class App : Application
     {
         private TransitionCollection transitions;
+
+        private Database m_database = null;
+        private Collection m_collection = null;
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -126,7 +130,52 @@ namespace AnkiWP8_1
             Window.Current.Activate();
 
            // SyncTest.ApplicationResuming();
-            SyncTest.ConnectionTest();
+            //SyncTest.ConnectionTest();
+
+            InitialiseCollection();
+        }
+
+        private async void InitialiseCollection()
+        {
+            const bool sync = true;
+
+            bool databaseExists = false;
+            try
+            {
+                var file = await StorageFile.GetFileFromPathAsync(Database.DB_PATH);
+                databaseExists = true;
+            }
+            catch (FileNotFoundException)
+            {
+                databaseExists = false;
+            }
+
+            m_database = new Database(Database.DB_PATH);
+            int version = 0;
+            if (databaseExists)
+            {
+                //version = Database.UpdateSchema(m_database);
+                //
+            }
+            else
+            {
+                version = await Database.CreateDB(m_database);
+            }
+
+            await m_database.Execute("pragma temp_store = memory");
+
+            if (sync)
+            {
+                await m_database.Execute("pragma cache_size = 10000");
+                //await m_database.Execute("pragma journal_mode = wal"); // not working?
+            }
+            else
+            {
+                await m_database.Execute("pragma synchronous = off");
+            }
+            
+            // not finished
+
         }
 
         /// <summary>

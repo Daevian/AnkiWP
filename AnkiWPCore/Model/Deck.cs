@@ -19,7 +19,7 @@ namespace AnkiWP.Model
         public dynamic ExtendRev { get; set; }
 
         [JsonProperty("usn")]
-        public dynamic Usn { get; set; }
+        public ulong Usn { get; set; }
 
         [JsonProperty("collapsed")]
         public bool Collapsed { get; set; }
@@ -31,13 +31,13 @@ namespace AnkiWP.Model
         public dynamic TimeToday { get; set; }
 
         [JsonProperty("dyn")]
-        public dynamic Dyn { get; set; }
+        public ulong Dyn { get; set; }
 
         [JsonProperty("extendNew")]
         public dynamic ExtendNew { get; set; }
 
         [JsonProperty("conf")]
-        public dynamic Conf { get; set; }
+        public ulong Conf { get; set; }
 
         [JsonProperty("revToday")]
         public dynamic ReviseToday { get; set; }
@@ -46,9 +46,32 @@ namespace AnkiWP.Model
         public dynamic LearnToday { get; set; }
 
         [JsonProperty("id")]
-        public long Id { get; set; }
+        public ulong Id { get; set; }
 
         [JsonProperty("mod")]
-        public dynamic Mod { get; set; }
+        public ulong Mod { get; set; }
+    }
+
+    public static class DefaultDeck
+    {
+        public static Deck Generate()
+        {
+            Deck deck = new Deck
+            {
+                NewToday = new List<int> { 0, 0 },
+                ReviseToday = new List<int> { 0, 0 },
+                LearnToday = new List<int> { 0, 0 },
+                TimeToday = new List<int> { 0, 0 },
+                Conf = 1,
+                Usn = 0,
+                Desc = string.Empty,
+                Dyn = 0,
+                Collapsed = false,
+                ExtendNew = 10,
+                ExtendRev = 50,
+            };
+
+            return deck;
+        }
     }
 }

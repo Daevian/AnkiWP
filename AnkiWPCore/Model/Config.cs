@@ -47,5 +47,6 @@ namespace AnkiWP.Model
 
         [JsonProperty("newSpread")]
         public dynamic NewSpread { get; set; }
+
     }
 }
