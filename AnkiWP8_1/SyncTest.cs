@@ -25,6 +25,7 @@ namespace AnkiWP8_1
         public static string version = "2.0.31";
 
         public static Col m_col = new Col();
+        public static Database m_database;
         public static string m_hKey = string.Empty;
         public static string m_sKey = string.Empty;
         public static ulong m_rmod;     // mod?
@@ -232,12 +233,16 @@ namespace AnkiWP8_1
                 await content.WriteToStreamAsync(transaction.Stream);
                 await transaction.CommitAsync();
             }
-            
-            /*
-            d = DB(tpath)
-            assert d.scalar("pragma integrity_check") == "ok"
-            d.close()
-             */
+
+            var testDB = new Database(tempPath);
+            string result = await testDB.Scalar("pragma integrity_check");
+            testDB.Close();
+
+            if (!result.Equals("ok"))
+            {
+                Debug.WriteLine("The database failed the integrity check");
+                return;
+            }
 
             await file.RenameAsync(m_col.Path, NameCollisionOption.ReplaceExisting);
         }

@@ -111,7 +111,17 @@ namespace AnkiWP
             m_path = path;
             m_modified = false;
 
-            m_database = new SQLiteAsyncConnection(DB_PATH, true);            
+            m_database = new SQLiteAsyncConnection(m_path, SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create, true);            
+        }
+
+        public void Close()
+        {
+            if (m_database != null)
+            {
+                var connection = SQLiteConnectionPool.Shared.GetConnection(new SQLiteConnectionString(m_path, true), SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create);
+                connection.Close();
+                m_database = null;
+            }
         }
 
         public async Task Load(Model.Collection collection)
@@ -201,6 +211,11 @@ namespace AnkiWP
             await conn.InsertAllAsync(m_graves);
         }
 
+        public async Task<string> Scalar(string sql, params object[] args)
+        {
+            return await m_database.ExecuteScalarAsync<string>(sql, args);
+        }
+
         /*
         public int Execute(string sqlText, params object[] args)
         {
@@ -239,10 +254,7 @@ namespace AnkiWP
             m_db.Rollback();
         }
 
-        public void Scalar()
-        {
-            throw new NotImplementedException();
-        }
+        
 
         public void All()
         {
@@ -259,13 +271,7 @@ namespace AnkiWP
             throw new NotImplementedException();
         }
 
-        public void Close()
-        {
-            if (m_db != null)
-            {
-                m_db.Close();
-            }
-        }
+        
 
         public void SetProgressHandler()
         {
